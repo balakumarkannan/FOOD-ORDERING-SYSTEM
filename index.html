@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Ordering System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: start;
+        }
+
+        /* MENU SECTION */
+        .menu-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .category-filter {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .category-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .refresh-btn {
+            padding: 10px 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            transition: all 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            transform: rotate(180deg);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .refresh-btn:active {
+            transform: rotate(180deg) scale(0.95);
+        }
+
+        .menu-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .menu-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .menu-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .menu-item-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .menu-item-price {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            padding: 5px 10px;
+            border-radius: 5px;
+        }
+
+        .menu-item-category {
+            display: inline-block;
+            font-size: 0.75em;
+            background: #764ba2;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+        }
+
+        .menu-item-prep-time {
+            font-size: 0.85em;
+            color: #666;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .menu-item-prep-time::before {
+            content: "⏱️";
+        }
+
+        .menu-item-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: white;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: none;
+            background: #667eea;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: all 0.2s ease;
+        }
+
+        .qty-btn:hover {
+            background: #764ba2;
+            transform: scale(1.1);
+        }
+
+        .qty-btn:active {
+            transform: scale(0.95);
+        }
+
+        .qty-display {
+            min-width: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: #333;
+            font-size: 1em;
+        }
+
+        /* BILL SECTION */
+        .bill-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: sticky;
+            top: 20px;
+        }
+
+        .bill-section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.8em;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .bill-items {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .bill-item {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #667eea;
+        }
+
+        .bill-item-info {
+            flex: 1;
+        }
+
+        .bill-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .bill-item-details {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .bill-item-total {
+            text-align: right;
+        }
+
+        .bill-item-qty {
+            font-weight: 600;
+            color: #764ba2;
+            margin-bottom: 4px;
+        }
+
+        .bill-item-price {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1em;
+        }
+
+        .bill-summary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .bill-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 1em;
+        }
+
+        .bill-row.total {
+            border-top: 2px solid rgba(255, 255, 255, 0.5);
+            padding-top: 12px;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .bill-row.prep-time {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .bill-empty {
+            text-align: center;
+            color: #999;
+            padding: 30px 0;
+            font-size: 1.1em;
+        }
+
+        .btn-generate {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-generate:active {
+            transform: translateY(0);
+        }
+
+        .btn-generate:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* BILL MODAL */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .bill-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 15px;
+        }
+
+        .bill-header h1 {
+            color: #333;
+            font-size: 2em;
+            margin-bottom: 5px;
+        }
+
+        .bill-header p {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .receipt-items {
+            margin: 25px 0;
+        }
+
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px dotted #ddd;
+        }
+
+        .receipt-item-left {
+            flex: 1;
+        }
+
+        .receipt-item-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .receipt-item-meta {
+            font-size: 0.85em;
+            color: #666;
+        }
+
+        .receipt-item-right {
+            text-align: right;
+        }
+
+        .receipt-summary {
+            background: linear-gradient(135deg, #f5f7fa 0%, #f0f4f8 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+        }
+
+        .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+        .receipt-row.subtotal {
+            color: #666;
+        }
+
+        .receipt-row.gst {
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .receipt-row.grand-total {
+            border-top: 2px solid #667eea;
+            padding-top: 10px;
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .receipt-row.prep-time {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            color: #764ba2;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            float: right;
+            font-size: 2em;
+            font-weight: bold;
+            color: #999;
+            cursor: pointer;
+            border: none;
+            background: none;
+            padding: 0;
+        }
+
+        .close-btn:hover {
+            color: #333;
+        }
+
+        .print-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .print-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* RESPONSIVE DESIGN */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+
+            .bill-section {
+                position: static;
+            }
+
+            header h1 {
+                font-size: 1.8em;
+            }
+
+            .menu-items {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                padding: 20px;
+            }
+
+            .category-filter {
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 10px;
+            }
+
+            .menu-section, .bill-section {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 1.5em;
+            }
+
+            .menu-items {
+                max-height: 500px;
+            }
+        }
+
+        /* SCROLLBAR STYLING */
+        .menu-items::-webkit-scrollbar,
+        .bill-items::-webkit-scrollbar,
+        .modal-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .menu-items::-webkit-scrollbar-track,
+        .bill-items::-webkit-scrollbar-track,
+        .modal-content::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .menu-items::-webkit-scrollbar-thumb,
+        .bill-items::-webkit-scrollbar-thumb,
+        .modal-content::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .menu-items::-webkit-scrollbar-thumb:hover,
+        .bill-items::-webkit-scrollbar-thumb:hover,
+        .modal-content::-webkit-scrollbar-thumb:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🍔 Restaurant Ordering System</h1>
+            <p>Select your favorite items and generate your bill</p>
+        </header>
+
+        <div class="main-content">
+            <!-- MENU SECTION -->
+            <div class="menu-section">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Menu</h2>
+                    <button id="refreshBtn" class="refresh-btn" onclick="refreshMenu()" title="Refresh Menu">🔄</button>
+                </div>
+                
+                <div class="category-filter">
+                    <button class="category-btn active" data-category="all">All Items</button>
+                    <button class="category-btn" data-category="appetizers">Appetizers</button>
+                    <button class="category-btn" data-category="mains">Mains</button>
+                    <button class="category-btn" data-category="desserts">Desserts</button>
+                    <button class="category-btn" data-category="beverages">Beverages</button>
+                </div>
+
+                <div class="menu-items" id="menuItems"></div>
+            </div>
+
+            <!-- BILL SECTION -->
+            <div class="bill-section">
+                <h2>Your Order</h2>
+                <div class="bill-items" id="billItems">
+                    <div class="bill-empty">Your cart is empty</div>
+                </div>
+
+                <div class="bill-summary" id="billSummary" style="display: none;">
+                    <div class="bill-row">
+                        <span>Subtotal:</span>
+                        <span id="subtotal">₹0.00</span>
+                    </div>
+                    <div class="bill-row gst">
+                        <span>GST (5%):</span>
+                        <span id="gst">₹0.00</span>
+                    </div>
+                    <div class="bill-row total">
+                        <span>Grand Total:</span>
+                        <span id="grandTotal">₹0.00</span>
+                    </div>
+                    <div class="bill-row prep-time">
+                        <span>⏱️ Est. Prep Time:</span>
+                        <span id="prepTimeDisplay">0 mins</span>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <button class="btn-generate" id="generateBillBtn" disabled style="flex:1">Generate Bill</button>
+                    <button id="newOrderBtn" class="refresh-btn" title="New Order" style="background: #ffffff; color: #667eea; border: 2px solid #e6e6f7; flex:0 0 130px;">New Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BILL MODAL -->
+    <div id="billModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeBillModal()">&times;</button>
+            
+            <div class="bill-header">
+                <h1>📋 Your Receipt</h1>
+                <p id="billTime"></p>
+            </div>
+
+            <div class="receipt-items" id="receiptItems"></div>
+
+            <div class="receipt-summary">
+                <div class="receipt-row subtotal">
+                    <span>Subtotal:</span>
+                    <span id="receiptSubtotal">₹0.00</span>
+                </div>
+                <div class="receipt-row gst">
+                    <span>GST (5%):</span>
+                    <span id="receiptGST">₹0.00</span>
+                </div>
+                <div class="receipt-row grand-total">
+                    <span>GRAND TOTAL:</span>
+                    <span id="receiptGrandTotal">₹0.00</span>
+                </div>
+                <div class="receipt-row prep-time">
+                    <span>⏱️ Estimated Preparation Time:</span>
+                    <span id="receiptPrepTime">0 mins</span>
+                </div>
+            </div>
+
+            <button class="print-btn" onclick="printBill()">🖨️ Print Receipt</button>
+        </div>
+    </div>
+
+    <script>
+        // MENU DATA
+        const menuData = [
+            // Appetizers
+            { id: 1, name: "Paneer Tikka", category: "appetizers", price: 250, prepTime: 15 },
+            { id: 2, name: "Spring Rolls", category: "appetizers", price: 150, prepTime: 10 },
+            { id: 3, name: "Samosa", category: "appetizers", price: 80, prepTime: 8 },
+            { id: 4, name: "Chicken 65", category: "appetizers", price: 280, prepTime: 12 },
+            { id: 5, name: "Tandoori Momos", category: "appetizers", price: 180, prepTime: 10 },
+            { id: 6, name: "Garlic Bread", category: "appetizers", price: 120, prepTime: 8 },
+            // Mains
+            { id: 7, name: "Butter Chicken", category: "mains", price: 400, prepTime: 25 },
+            { id: 8, name: "Biryani", category: "mains", price: 300, prepTime: 20 },
+            { id: 9, name: "Chole Bhature", category: "mains", price: 200, prepTime: 18 },
+            { id: 10, name: "Rogan Josh", category: "mains", price: 380, prepTime: 22 },
+            { id: 11, name: "Tandoori Chicken", category: "mains", price: 420, prepTime: 28 },
+            { id: 12, name: "Palak Paneer", category: "mains", price: 280, prepTime: 16 },
+            { id: 13, name: "Dal Makhani", category: "mains", price: 200, prepTime: 20 },
+            { id: 14, name: "Chicken Tikka Masala", category: "mains", price: 380, prepTime: 24 },
+            // Desserts
+            { id: 15, name: "Gulab Jamun", category: "desserts", price: 120, prepTime: 5 },
+            { id: 16, name: "Kheer", category: "desserts", price: 100, prepTime: 10 },
+            { id: 17, name: "Jalebi", category: "desserts", price: 90, prepTime: 7 },
+            { id: 18, name: "Rasgulla", category: "desserts", price: 110, prepTime: 8 },
+            { id: 19, name: "Ice Cream", category: "desserts", price: 80, prepTime: 2 },
+            { id: 20, name: "Barfi", category: "desserts", price: 100, prepTime: 5 },
+            // Beverages
+            { id: 21, name: "Coca Cola (330ml)", category: "beverages", price: 60, prepTime: 2 },
+            { id: 22, name: "Mango Lassi", category: "beverages", price: 100, prepTime: 5 },
+            { id: 23, name: "Masala Chai", category: "beverages", price: 40, prepTime: 3 },
+            { id: 24, name: "Fresh Lemonade", category: "beverages", price: 80, prepTime: 3 },
+            { id: 25, name: "Iced Tea", category: "beverages", price: 60, prepTime: 4 },
+            { id: 26, name: "Buttermilk", category: "beverages", price: 50, prepTime: 2 }
+        ];
+
+        // STATE
+        let order = {};
+        let currentCategory = 'all';
+
+        // INITIALIZE
+        function init() {
+            renderMenu();
+            setupCategoryFilters();
+            setupGenerateBillButton();
+            setupNewOrderButton();
+        }
+
+        // REFRESH MENU
+        function refreshMenu() {
+            const refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.style.transform = 'rotate(180deg)';
+            
+            // Reset to 'all' category
+            currentCategory = 'all';
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.category === 'all') {
+                    btn.classList.add('active');
+                }
+            });
+            
+            // Re-render menu
+            renderMenu();
+            
+            // Reset rotation after animation
+            setTimeout(() => {
+                refreshBtn.style.transform = 'rotate(0deg)';
+            }, 600);
+        }
+
+        // RENDER MENU
+        function renderMenu() {
+            const menuItemsContainer = document.getElementById('menuItems');
+            menuItemsContainer.innerHTML = '';
+
+            const filteredMenu = currentCategory === 'all' 
+                ? menuData 
+                : menuData.filter(item => item.category === currentCategory);
+
+            filteredMenu.forEach(item => {
+                const qty = order[item.id] || 0;
+                const menuItemDiv = document.createElement('div');
+                menuItemDiv.className = 'menu-item';
+                menuItemDiv.innerHTML = `
+                    <div class="menu-item-header">
+                        <span class="menu-item-name">${item.name}</span>
+                        <span class="menu-item-price">₹${item.price}</span>
+                    </div>
+                    <span class="menu-item-category">${item.category.toUpperCase()}</span>
+                    <div class="menu-item-prep-time">${item.prepTime} mins</div>
+                    <div class="menu-item-controls">
+                        <button class="qty-btn" onclick="decreaseQty(${item.id})">−</button>
+                        <span class="qty-display">${qty}</span>
+                        <button class="qty-btn" onclick="increaseQty(${item.id})">+</button>
+                    </div>
+                `;
+                menuItemsContainer.appendChild(menuItemDiv);
+            });
+        }
+
+        // QUANTITY MANAGEMENT
+        function increaseQty(itemId) {
+            order[itemId] = (order[itemId] || 0) + 1;
+            updateUI();
+        }
+
+        function decreaseQty(itemId) {
+            if (order[itemId] > 0) {
+                order[itemId]--;
+                if (order[itemId] === 0) {
+                    delete order[itemId];
+                }
+                updateUI();
+            }
+        }
+
+        // UPDATE UI
+        function updateUI() {
+            renderMenu();
+            updateBillSection();
+        }
+
+        // UPDATE BILL SECTION
+        function updateBillSection() {
+            const billItemsContainer = document.getElementById('billItems');
+            const billSummary = document.getElementById('billSummary');
+            const generateBillBtn = document.getElementById('generateBillBtn');
+
+            const orderedItems = Object.keys(order).filter(itemId => order[itemId] > 0);
+
+            if (orderedItems.length === 0) {
+                billItemsContainer.innerHTML = '<div class="bill-empty">Your cart is empty</div>';
+                billSummary.style.display = 'none';
+                generateBillBtn.disabled = true;
+                return;
+            }
+
+            billItemsContainer.innerHTML = '';
+            let subtotal = 0;
+            let totalPrepTime = 0;
+
+            orderedItems.forEach(itemId => {
+                const item = menuData.find(m => m.id === parseInt(itemId));
+                const qty = order[itemId];
+                const itemTotal = item.price * qty;
+                const itemPrepTime = item.prepTime * qty;
+
+                subtotal += itemTotal;
+                totalPrepTime += itemPrepTime;
+
+                const billItemDiv = document.createElement('div');
+                billItemDiv.className = 'bill-item';
+                billItemDiv.innerHTML = `
+                    <div class="bill-item-info">
+                        <div class="bill-item-name">${item.name}</div>
+                        <div class="bill-item-details">₹${item.price} × ${qty}</div>
+                    </div>
+                    <div class="bill-item-total">
+                        <div class="bill-item-qty">Qty: ${qty}</div>
+                        <div class="bill-item-price">₹${itemTotal}</div>
+                    </div>
+                `;
+                billItemsContainer.appendChild(billItemDiv);
+            });
+
+            // CALCULATE GST AND TOTAL
+            const gst = subtotal * 0.05;
+            const grandTotal = subtotal + gst;
+
+            document.getElementById('subtotal').textContent = `₹${subtotal.toFixed(2)}`;
+            document.getElementById('gst').textContent = `₹${gst.toFixed(2)}`;
+            document.getElementById('grandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+            document.getElementById('prepTimeDisplay').textContent = `${totalPrepTime} mins`;
+
+            billSummary.style.display = 'block';
+            generateBillBtn.disabled = false;
+
+            // Store for bill modal
+            window.currentBillData = {
+                items: orderedItems.map(itemId => {
+                    const item = menuData.find(m => m.id === parseInt(itemId));
+                    return {
+                        ...item,
+                        qty: order[itemId],
+                        total: item.price * order[itemId]
+                    };
+                }),
+                subtotal,
+                gst,
+                grandTotal,
+                totalPrepTime
+            };
+        }
+
+        // CATEGORY FILTER
+        function setupCategoryFilters() {
+            document.querySelectorAll('.category-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategory = this.dataset.category;
+                    renderMenu();
+                });
+            });
+        }
+
+        // GENERATE BILL BUTTON
+        function setupGenerateBillButton() {
+            document.getElementById('generateBillBtn').addEventListener('click', showBillModal);
+        }
+
+        // NEW ORDER BUTTON SETUP
+        function setupNewOrderButton() {
+            const btn = document.getElementById('newOrderBtn');
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                // clear order state
+                order = {};
+                // clear stored bill data used for modal
+                window.currentBillData = null;
+
+                // clear receipt/modal contents
+                const receiptItems = document.getElementById('receiptItems');
+                if (receiptItems) receiptItems.innerHTML = '';
+                // hide modal if open
+                const modal = document.getElementById('billModal');
+                if (modal && modal.classList.contains('show')) modal.classList.remove('show');
+
+                // rerender menu and bill panel to show cleared quantities and empty bill
+                renderMenu();
+                updateBillSection();
+            });
+        }
+
+        // BILL MODAL FUNCTIONS
+        function showBillModal() {
+            const billData = window.currentBillData;
+            if (!billData) return;
+
+            // Populate receipt
+            const receiptItemsDiv = document.getElementById('receiptItems');
+            receiptItemsDiv.innerHTML = '';
+
+            billData.items.forEach(item => {
+                const receiptItemDiv = document.createElement('div');
+                receiptItemDiv.className = 'receipt-item';
+                receiptItemDiv.innerHTML = `
+                    <div class="receipt-item-left">
+                        <div class="receipt-item-name">${item.name}</div>
+                        <div class="receipt-item-meta">₹${item.price} × ${item.qty} | Prep: ${item.prepTime * item.qty} mins</div>
+                    </div>
+                    <div class="receipt-item-right">
+                        <strong>₹${item.total.toFixed(2)}</strong>
+                    </div>
+                `;
+                receiptItemsDiv.appendChild(receiptItemDiv);
+            });
+
+            // Update summary
+            document.getElementById('receiptSubtotal').textContent = `₹${billData.subtotal.toFixed(2)}`;
+            document.getElementById('receiptGST').textContent = `₹${billData.gst.toFixed(2)}`;
+            document.getElementById('receiptGrandTotal').textContent = `₹${billData.grandTotal.toFixed(2)}`;
+            document.getElementById('receiptPrepTime').textContent = `${billData.totalPrepTime} mins`;
+
+            // Time
+            const now = new Date();
+            document.getElementById('billTime').textContent = `Generated on ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
+
+            document.getElementById('billModal').classList.add('show');
+        }
+
+        function closeBillModal() {
+            document.getElementById('billModal').classList.remove('show');
+        }
+
+        function printBill() {
+            window.print();
+        }
+
+        // CLOSE MODAL ON BACKGROUND CLICK
+        window.addEventListener('click', function(event) {
+            const modal = document.getElementById('billModal');
+            if (event.target === modal) {
+                closeBillModal();
+            }
+        });
+
+        // INITIALIZE APP
+        init();
+    </script>
+</body>
+</html>
